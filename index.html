@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PawLink · 宝灵 AI 智慧管理系统</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ===== Module-specific overrides ===== */
+    .module-hero {
+      background: var(--primary-gradient);
+      border-radius: var(--radius);
+      padding: 36px 40px;
+      color: #fff;
+      margin-bottom: 32px;
+      box-shadow: 0 4px 20px rgba(91,191,58,0.3);
+    }
+    .module-hero h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+    .module-hero p { font-size: 15px; opacity: 0.9; max-width: 600px; line-height: 1.7; }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .module-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .module-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      transition: opacity 0.2s;
+    }
+    .module-card.coral::before { background: linear-gradient(90deg, #ff6b6b, #ffa07a); }
+    .module-card.teal::before  { background: linear-gradient(90deg, #4ecdc4, #44b8b0); }
+    .module-card.purple::before{ background: linear-gradient(90deg, #a18cd1, #fbc2eb); }
+    .module-card.orange::before{ background: linear-gradient(90deg, #f7971e, #ffd200); }
+    .module-card.green::before { background: var(--primary-gradient); }
+    .module-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); border-color: var(--primary); }
+    .module-card:hover::before { opacity: 1; }
+
+    .module-card-icon {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      margin-bottom: 14px;
+    }
+    .icon-coral   { background: #fff0f0; }
+    .icon-teal    { background: #e8faf9; }
+    .icon-purple  { background: #f3f0ff; }
+    .icon-orange  { background: #fff8e1; }
+    .icon-green   { background: var(--primary-light); }
+
+    .module-card-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .module-card-sub { font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; font-style: italic; }
+    .module-card-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+    .module-card-arrow {
+      position: absolute; bottom: 20px; right: 20px;
+      color: var(--primary); font-size: 16px; font-weight: bold;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .module-card:hover .module-card-arrow { opacity: 1; }
+
+    /* Challenges badge */
+    .challenge-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .challenge-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--warning);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .challenge-item.solved { border-left-color: var(--success); }
+    .challenge-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+    .challenge-solution {
+      font-size: 12px;
+      color: var(--success);
+      font-weight: 500;
+      margin-top: 6px;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .challenge-desc { font-size: 12px; color: var(--text-secondary); }
+
+    /* Feature breakdown panels */
+    .feature-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .feature-panel-header {
+      padding: 14px 20px;
+      font-weight: 700;
+      font-size: 15px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .feature-panel-body { padding: 16px 20px; }
+
+    .sub-feature {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .sub-feature:last-child { margin-bottom: 0; }
+    .sub-feature-title {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .sub-feature-items {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-left: 18px;
+    }
+    .sub-feature-item {
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex; align-items: flex-start; gap: 6px;
+      line-height: 1.5;
+    }
+    .sub-feature-item::before {
+      content: '·';
+      color: var(--primary);
+      font-weight: bold;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .flow-arrow {
+      display: inline-block;
+      margin: 0 6px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .tag-chip {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+    }
+    .tag-chip.blue  { background: var(--info-light);    color: var(--info); }
+    .tag-chip.warn  { background: var(--warning-light); color: var(--warning); }
+    .tag-chip.red   { background: var(--danger-light);  color: var(--danger); }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+    .example-bubble {
+      display: inline-block;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 6px 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      margin-right: 4px;
+    }
+
+    /* System overview stat row */
+    .system-stats {
+      display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px;
+    }
+    .system-stat {
+      flex: 1; min-width: 120px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      text-align: center;
+    }
+    .system-stat-value {
+      font-size: 28px; font-weight: 800;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: block;
+    }
+    .system-stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <img src="images/logo.png" alt="PawLink" class="logo-img" />
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-tab="home" onclick="switchTab('home', this)">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">系统总览</span>
+      </button>
+      <button class="nav-item" data-tab="interaction" onclick="switchTab('interaction', this)">
+        <span class="nav-icon">💬</span>
+        <span class="nav-label">核心交互层</span>
+      </button>
+      <button class="nav-item" data-tab="agentic" onclick="switchTab('agentic', this)">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label">自动化业务</span>
+      </button>
+      <button class="nav-item" data-tab="rag" onclick="switchTab('rag', this)">
+        <span class="nav-icon">🧠</span>
+        <span class="nav-label">知识内循环</span>
+      </button>
+      <button class="nav-item" data-tab="operations" onclick="switchTab('operations', this)">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">运营决策</span>
+      </button>
+    </nav>
+    <div class="sidebar-pet-card">
+      <div class="pet-avatar">🐾</div>
+      <div class="pet-info">
+        <div class="pet-name">PawLink 宝灵</div>
+        <div class="pet-meta">AI 智慧管理系统</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- ===== HOME TAB ===== -->
+    <div class="tab-content active" id="tab-home">
+      <div class="module-hero">
+        <h1>PawLink（宝灵）</h1>
+        <p>AI 驱动宠物前后台联动智慧管理系统 &mdash; 让每一位毛孩子的照护都有迹可循、智能可依。</p>
+      </div>
+
+      <div class="system-stats">
+        <div class="system-stat">
+          <span class="system-stat-value">5</span>
+          <div class="system-stat-label">核心功能模块</div>
+        </div>
+        <div class="system-stat">
+          <span class="system-stat-value">MCP</span>
+          <div class="system-stat-label">微信生态直连协议</div>
+        </div>
+        <div class="system-stat">
+          <span class="system-stat-value">RAG</span>
+          <div class="system-stat-label">知识动态更新引擎</div>
+        </div>
+        <div class="system-stat">
+          <span class="system-stat-value">全自动</span>
+          <div class="system-stat-label">前后台联动处理</div>
+        </div>
+      </div>
+
+      <div class="overview-grid">
+        <div class="module-card coral" onclick="switchTab('interaction', null)">
+          <div class="module-card-icon icon-coral">💬</div>
+          <div class="module-card-title">核心交互层</div>
+          <div class="module-card-sub">Interaction</div>
+          <div class="module-card-desc">员工移动端全功能入口，支持语音、文字、图片录入；客户微信群 Agent 实时互动与反馈收集。</div>
+          <div class="module-card-arrow">→</div>
+        </div>
+        <div class="module-card teal" onclick="switchTab('agentic', null)">
+          <div class="module-card-icon icon-teal">⚙️</div>
+          <div class="module-card-title">自动化业务处理</div>
+          <div class="module-card-sub">Agentic Logic</div>
+          <div class="module-card-desc">信息自动路由提取宠物档案、服务汇报、账务数据；智慧监控动态合成宠物实时状态并主动推送。</div>
+          <div class="module-card-arrow">→</div>
+        </div>
+        <div class="module-card purple" onclick="switchTab('rag', null)">
+          <div class="module-card-icon icon-purple">🧠</div>
+          <div class="module-card-title">知识内循环</div>
+          <div class="module-card-sub">RAG &amp; Training</div>
+          <div class="module-card-desc">员工知识库即时问答；老板端审核知识闭环；自动比对服务标准，持续提升 Agent 专业度。</div>
+          <div class="module-card-arrow">→</div>
+        </div>
+        <div class="module-card orange" onclick="switchTab('operations', null)">
+          <div class="module-card-icon icon-orange">📊</div>
+          <div class="module-card-title">运营决策与提醒</div>
+          <div class="module-card-sub">Operational Intelligence</div>
+          <div class="module-card-desc">智能排班、生日提醒、情感连接；依据会员画像自动推送促销与社群活动。</div>
+          <div class="module-card-arrow">→</div>
+        </div>
+      </div>
+
+      <!-- Key Challenges Section -->
+      <div class="section">
+        <div class="section-header">
+          <h2>系统架构难点 <span class="tag-chip warn">Key Challenges</span></h2>
+        </div>
+        <div class="challenge-grid">
+          <div class="challenge-item solved">
+            <div class="challenge-title">视觉信息与文字描述准确匹配难题</div>
+            <div class="challenge-desc">监控画面与员工文字报告的跨模态对齐</div>
+            <div class="challenge-solution">✓ 多模态数据对齐</div>
+          </div>
+          <div class="challenge-item">
+            <div class="challenge-title">MCP 对接微信号稳定性问题</div>
+            <div class="challenge-desc">微信生态的协议对接及长期稳定性保障</div>
+          </div>
+          <div class="challenge-item">
+            <div class="challenge-title">高并发消息语义提取难题</div>
+            <div class="challenge-desc">群聊高频消息流中的实时信息抽取与分类</div>
+          </div>
+          <div class="challenge-item solved">
+            <div class="challenge-title">确保老板端审核反馈实时优化 Agent 专业度</div>
+            <div class="challenge-desc">人工审核结果闭环至模型知识更新</div>
+            <div class="challenge-solution">✓ RAG 动态更新</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== INTERACTION TAB ===== -->
+    <div class="tab-content" id="tab-interaction">
+      <div class="page-header">
+        <h1>💬 核心交互层</h1>
+        <p class="subtitle">Interaction &mdash; 员工端 · 任务看板 · 客户微信群</p>
+      </div>
+
+      <div class="two-col">
+        <!-- 员工端 -->
+        <div class="feature-panel">
+          <div class="feature-panel-header">
+            📱 员工端 <span class="tag-chip">Mobile APP</span>
+          </div>
+          <div class="feature-panel-body">
+            <div class="sub-feature">
+              <div class="sub-feature-title">全功能入口</div>
+              <div class="sub-feature-items">
+                <div class="sub-feature-item">支持语音录入</div>
+                <div class="sub-feature-item">支持文字录入</div>
+                <div class="sub-feature-item">支持图片录入</div>
+              </div>
+            </div>
+            <div class="sub-feature">
+              <div class="sub-feature-title">极简对话框</div>
+              <div class="sub-feature-items">
+                <div class="sub-feature-item">单一入口涵盖所有操作场景</div>
+                <div class="sub-feature-item">口语化输入，无需填写表单</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 任务看板 -->
+        <div class="feature-panel">
+          <div class="feature-panel-header">
+            📋 任务看板
+          </div>
+          <div class="feature-panel-body">
+            <div class="sub-feature">
+              <div class="sub-feature-title">Agent 生成的每日工作排班</div>
+              <div class="sub-feature-items">
+                <div class="sub-feature-item">每日清晨自动下发当日工作清单</div>
+                <div class="sub-feature-item">基于预约与排期智能生成任务</div>
+                <div class="sub-feature-item">员工接收并执行，进度实时同步</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 客户端 -->
+        <div class="feature-panel" style="grid-column: 1 / -1;">
+          <div class="feature-panel-header">
+            💚 客户端 <span class="tag-chip blue">WeChat Groups</span>
+          </div>
+          <div class="feature-panel-body">
+            <div class="two-col">
+              <div class="sub-feature">
+                <div class="sub-feature-title">Agent 微信助手</div>
+                <div class="sub-feature-items">
+                  <div class="sub-feature-item">通过 MCP 协议直连微信群</div>
+                  <div class="sub-feature-item">模拟店员在群内发送宠物状态推送</div>
+                  <div class="sub-feature-item">自然语言交互，无需人工介入</div>
+                </div>
+              </div>
+              <div class="sub-feature">
+                <div class="sub-feature-title">实时反馈</div>
+                <div class="sub-feature-items">
+                  <div class="sub-feature-item">自动收集群聊内客户需求</div>
+                  <div class="sub-feature-item">需求回传至后台系统</div>
+                  <div class="sub-feature-item">形成前后台需求闭环</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== AGENTIC TAB ===== -->
+    <div class="tab-content" id="tab-agentic">
+      <div class="page-header">
+        <h1>⚙️ 自动化业务处理</h1>
+        <p class="subtitle">Agentic Logic &mdash; 信息自动路由 · 寄养智慧监控</p>
+      </div>
+
+      <!-- 信息自动路由 -->
+      <div class="section">
+        <div class="section-header">
+          <h2>信息自动路由 <span class="tag-chip">Auto-Routing</span></h2>
+        </div>
+        <div class="two-col">
+          <div class="feature-panel">
+            <div class="feature-panel-header">🐾 宠物信息录入</div>
+            <div class="feature-panel-body">
+              <div class="sub-feature-items">
+                <div class="sub-feature-item">提取对话中的品种</div>
+                <div class="sub-feature-item">提取年龄</div>
+                <div class="sub-feature-item">提取疫苗史</div>
+              </div>
+            </div>
+          </div>
+          <div class="feature-panel">
+            <div class="feature-panel-header">📝 服务汇报</div>
+            <div class="feature-panel-body">
+              <div class="sub-feature-items">
+                <div class="sub-feature-item">提取洗澡当日总结</div>
+                <div class="sub-feature-item">提取寄养排泄情况</div>
+                <div class="sub-feature-item">提取寄养进食情况</div>
+              </div>
+            </div>
+          </div>
+          <div class="feature-panel" style="grid-column: 1 / -1;">
+            <div class="feature-panel-header">💰 账务管理</div>
+            <div class="feature-panel-body">
+              <div class="sub-feature-items">
+                <div class="sub-feature-item">识别消费金额</div>
+                <div class="sub-feature-item">自动触发会员等级积累</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 寄养智慧监控 -->
+      <div class="section">
+        <div class="section-header">
+          <h2>寄养智慧监控</h2>
+        </div>
+        <div class="two-col">
+          <div class="feature-panel">
+            <div class="feature-panel-header">📹 监控接入</div>
+            <div class="feature-panel-body">
+              <div class="sub-feature-items">
+                <div class="sub-feature-item">联网分析视频流</div>
+                <div class="sub-feature-item">识别宠物活跃状态</div>
+              </div>
+            </div>
+          </div>
+          <div class="feature-panel">
+            <div class="feature-panel-header">🎬 动态合成</div>
+            <div class="feature-panel-body">
+              <div class="sub-feature-items">
+                <div class="sub-feature-item">结合监控画面</div>
+                <div class="sub-feature-item">结合员工文字报告</div>
+                <div class="sub-feature-item">生成宠物动态行为分析</div>
+              </div>
+            </div>
+          </div>
+          <div class="feature-panel" style="grid-column: 1 / -1;">
+            <div class="feature-panel-header">📤 主动推送</div>
+            <div class="feature-panel-body">
+              <div class="sub-feature">
+                <div class="sub-feature-title">在微信群内实时同步宠物状态</div>
+                <div style="margin-top: 8px;">
+                  <span class="example-bubble">宝宝刚喝了水</span>
+                  <span class="example-bubble">宝宝正在玩耍</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== RAG TAB ===== -->
+    <div class="tab-content" id="tab-rag">
+      <div class="page-header">
+        <h1>🧠 知识内循环</h1>
+        <p class="subtitle">RAG &amp; Training &mdash; 员工知识库 · 知识闭环 · 服务标准监控</p>
+      </div>
+
+      <div class="feature-panel">
+        <div class="feature-panel-header">
+          📚 员工知识库 <span class="tag-chip">Internal RAG</span>
+        </div>
+        <div class="feature-panel-body">
+          <div class="sub-feature">
+            <div class="sub-feature-title">即时问答</div>
+            <div class="sub-feature-items">
+              <div class="sub-feature-item">员工在对话框输入专业问题</div>
+              <div class="sub-feature-item">系统即时检索知识库给出回答</div>
+            </div>
+            <div style="margin-top: 8px;">
+              <span class="example-bubble">例：幼犬洗澡注意事项</span>
+            </div>
+          </div>
+
+          <div class="sub-feature" style="margin-top: 16px;">
+            <div class="sub-feature-title">知识闭环</div>
+            <div class="sub-feature-items">
+              <div class="sub-feature-item">老板端审核无法解答的问题</div>
+              <div class="sub-feature-item">手动并入知识库</div>
+              <div class="sub-feature-item">自动并入知识库（RAG 动态更新）</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-panel" style="margin-top: 16px;">
+        <div class="feature-panel-header">
+          📏 服务标准监控
+        </div>
+        <div class="feature-panel-body">
+          <div class="sub-feature">
+            <div class="sub-feature-title">自动比对员工工作总结与标准流程的契合度</div>
+            <div class="sub-feature-items">
+              <div class="sub-feature-item">持续评估员工执行质量</div>
+              <div class="sub-feature-item">偏差自动触发知识推送与复训</div>
+              <div class="sub-feature-item">老板端实时看到各员工的服务达标率</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== OPERATIONS TAB ===== -->
+    <div class="tab-content" id="tab-operations">
+      <div class="page-header">
+        <h1>📊 运营决策与提醒</h1>
+        <p class="subtitle">Operational Intelligence &mdash; 预定排期 · 生日提醒 · 情感连接</p>
+      </div>
+
+      <!-- 预定与排期 -->
+      <div class="section">
+        <div class="section-header">
+          <h2>预定与排期</h2>
+        </div>
+        <div class="two-col">
+          <div class="feature-panel">
+            <div class="feature-panel-header">📅 预定解析</div>
+            <div class="feature-panel-body">
+              <div class="sub-feature-items">
+                <div class="sub-feature-item">后台接收微信群预约信息</div>
+                <div class="sub-feature-item">后台接收对话框预约信息</div>
+                <div class="sub-feature-item">AI 自动解析预约时间与服务需求</div>
+              </div>
+            </div>
+          </div>
+          <div class="feature-panel">
+            <div class="feature-panel-header">🗓️ 智能排班</div>
+            <div class="feature-panel-body">
+              <div class="sub-feature-items">
+                <div class="sub-feature-item">自动计算工时</div>
+                <div class="sub-feature-item">每日清晨下发当日工作清单</div>
+                <div class="sub-feature-item">员工任务分配最优化</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 生日提醒 -->
+      <div class="section">
+        <div class="section-header">
+          <h2>生日提醒</h2>
+        </div>
+        <div class="feature-panel">
+          <div class="feature-panel-body">
+            <div class="sub-feature-items">
+              <div class="sub-feature-item">自动检索数据库，识别即将到来的宠物生日</div>
+              <div class="sub-feature-item">生成个性化文案，通过微信群发送祝福</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 情感连接 -->
+      <div class="section">
+        <div class="section-header">
+          <h2>情感连接</h2>
+        </div>
+        <div class="two-col">
+          <div class="feature-panel">
+            <div class="feature-panel-header">🎁 活动管理</div>
+            <div class="feature-panel-body">
+              <div class="sub-feature">
+                <div class="sub-feature-title">根据会员画像自动推送</div>
+                <div class="sub-feature-items">
+                  <div class="sub-feature-item">促销活动精准触达</div>
+                  <div class="sub-feature-item">社群活动定向邀约</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="feature-panel">
+            <div class="feature-panel-header">👤 会员画像</div>
+            <div class="feature-panel-body">
+              <div class="sub-feature-items">
+                <div class="sub-feature-item">整合消费记录、宠物偏好、互动频率</div>
+                <div class="sub-feature-item">动态更新，支持精准营销决策</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+      if (btn) {
+        btn.classList.add('active');
+      } else {
+        const match = document.querySelector(`[data-tab="${tabId}"]`);
+        if (match) match.classList.add('active');
+      }
+    }
+  </script>
+</body>
+</html>
